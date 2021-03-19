@@ -76,4 +76,13 @@ def dictToDataFrame(reviews_dict):
 posBooks = dictToDataFrame(posReviewsDict)
 negBooks = dictToDataFrame(negReviewsDict)
 
-posBooks.head(n=3)
+print('\nNumber of Positive Reviews (Dataframe):', len(posBooks),
+      '\nNumber of Negative Reviews (Dataframe):', len(negBooks))
+	  
+posBooks.drop('unique_id',axis=1,inplace=True)
+negBooks.drop('unique_id',axis=1,inplace=True)
+
+posBooks['Class'] = "pos" # positive reviews
+negBooks['Class'] = "neg" # negative reviews
+
+reviews  = pd.concat([posBooks, negBooks])
