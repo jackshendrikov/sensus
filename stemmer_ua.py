@@ -1,12 +1,6 @@
 import re
 
 
-def s(s, reg, to):
-    orig = s
-    RV = re.sub(reg, to, s)
-    return orig != RV
-
-
 class UAStemmer:
 
     REFLEXIVE = r'(с[иья])$'  # reflexive verb
@@ -23,7 +17,13 @@ class UAStemmer:
     RV = ''  # the area of the word after the first vowel. It can be empty if there are no vowels in the word
 
     @staticmethod
-    def stem_word(word):
+    def s(s, reg, to):
+        orig = s
+        RV = re.sub(reg, to, s)
+        return orig != RV
+
+    @staticmethod
+    def stem(word):
         word = word.lower().replace("'", "")
 
         if not re.search(UAStemmer.RVRE, word):
