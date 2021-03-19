@@ -106,15 +106,10 @@ STOP_WORDS = set(line.strip() for line in open('data/stopwords_ua.txt', mode="r"
 
 
 def stopwords_elimination(stop_words, sent):
-    filtered_words = []
-    for w in sent:
-        if w not in stop_words:
-            filtered_words.append(w)
-    print(filtered_words == [w for w in sent if w not in stop_words])
     return [w for w in sent if w not in stop_words]
 
 
 filtered_words = stopwords_elimination(STOP_WORDS, words)
-print("\n====================WORDS FROM REVIEW1====================\n", words,
-      "\n\n==================FILTERED WORDS REVIEW1==================\n", filtered_words,
-      "\n\n========================STOP WORDS========================\n", STOP_WORDS)
+print("\n==================== WORDS FROM REVIEW 1 ====================\n", words,
+      "\n\n================== FILTERED WORDS REVIEW 1==================\n", filtered_words,
+      "\n\n======================== STOP WORDS ========================\n", STOP_WORDS)
