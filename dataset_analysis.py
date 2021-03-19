@@ -1,10 +1,8 @@
 import os
-import sklearn
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import xml.etree.ElementTree as ET
-
+from nltk.tokenize import word_tokenize, sent_tokenize, RegexpTokenizer
 
 testRead = open('data/positive.review', 'r', encoding='utf8', errors='ignore').readlines()
 print('===========TEXT EXAMPLE===========')
@@ -24,7 +22,7 @@ neg_tags = neg_rev_tree.findall('review')
 print('\nNumber of Positive Reviews:', len(pos_tags),
       '\nNumber of Positive Reviews:', len(neg_tags))
 
-review_tags = ['unique_id', 'asin', 'product_name', 'helpful', 'rating', 'title',
+REVIEW_TAGS = ['unique_id', 'asin', 'product_name', 'helpful', 'rating', 'title',
                'date', 'reviewer', 'reviewer_location', 'review_text']
 
 
@@ -36,36 +34,36 @@ def parseXML(xml_reviews):
         count += 1
         rev_name = 'review' + str(count)
         reviews[rev_name] = [
-            review_tags[0] + ' | ' + item.find(review_tags[0]).text,
-            review_tags[1] + ' | ' + item.find(review_tags[1]).text,
-            review_tags[2] + ' | ' + item.find(review_tags[2]).text,
-            review_tags[3] + ' | ' + item.find(review_tags[3]).text,
-            review_tags[4] + ' | ' + item.find(review_tags[4]).text,
-            review_tags[5] + ' | ' + item.find(review_tags[5]).text,
-            review_tags[6] + ' | ' + item.find(review_tags[6]).text,
-            review_tags[7] + ' | ' + item.find(review_tags[7]).text,
-            review_tags[8] + ' | ' + item.find(review_tags[8]).text,
-            review_tags[9] + ' | ' + item.find(review_tags[9]).text
+            REVIEW_TAGS[0] + ' | ' + item.find(REVIEW_TAGS[0]).text.strip(),
+            REVIEW_TAGS[1] + ' | ' + item.find(REVIEW_TAGS[1]).text.strip(),
+            REVIEW_TAGS[2] + ' | ' + item.find(REVIEW_TAGS[2]).text.strip(),
+            REVIEW_TAGS[3] + ' | ' + item.find(REVIEW_TAGS[3]).text.strip(),
+            REVIEW_TAGS[4] + ' | ' + item.find(REVIEW_TAGS[4]).text.strip(),
+            REVIEW_TAGS[5] + ' | ' + item.find(REVIEW_TAGS[5]).text.strip(),
+            REVIEW_TAGS[6] + ' | ' + item.find(REVIEW_TAGS[6]).text.strip(),
+            REVIEW_TAGS[7] + ' | ' + item.find(REVIEW_TAGS[7]).text.strip(),
+            REVIEW_TAGS[8] + ' | ' + item.find(REVIEW_TAGS[8]).text.strip(),
+            REVIEW_TAGS[9] + ' | ' + item.find(REVIEW_TAGS[9]).text.strip()
         ]
 
     return reviews
 
 
-posReviewsDict = parseXML(pos_tags)
-negReviewsDict = parseXML(neg_tags)
+pos_reviews_dict = parseXML(pos_tags)
+neg_reviews_dict = parseXML(neg_tags)
 
 
-def dictToDataFrame(reviews_dict):
+def dict_to_dataframe(reviews_dict):
     # prepare our dataframe for the data
-    df = pd.DataFrame(columns=review_tags)
+    df = pd.DataFrame(columns=REVIEW_TAGS)
     count = 0
     for val in reviews_dict.values():
         df.loc[count] = [
-            val[0].split("|")[1].split("\n")[1], val[1].split("|")[1].split("\n")[1],
-            val[2].split("|")[1].split("\n")[1], val[3].split("|")[1].split("\n")[1],
-            val[4].split("|")[1].split("\n")[1], val[5].split("|")[1].split("\n")[1],
-            val[6].split("|")[1].split("\n")[1], val[7].split("|")[1].split("\n")[1],
-            val[8].split("|")[1].split("\n")[1], val[9].split("|")[1].split("\n")[1]
+            val[0].split("|")[1], val[1].split("|")[1],
+            val[2].split("|")[1], val[3].split("|")[1],
+            val[4].split("|")[1], val[5].split("|")[1],
+            val[6].split("|")[1], val[7].split("|")[1],
+            val[8].split("|")[1], val[9].split("|")[1]
         ]
 
         count = count + 1
@@ -73,16 +71,50 @@ def dictToDataFrame(reviews_dict):
     return df
 
 
-posBooks = dictToDataFrame(posReviewsDict)
-negBooks = dictToDataFrame(negReviewsDict)
+pos_books = dict_to_dataframe(pos_reviews_dict)
+neg_books = dict_to_dataframe(neg_reviews_dict)
 
-print('\nNumber of Positive Reviews (Dataframe):', len(posBooks),
-      '\nNumber of Negative Reviews (Dataframe):', len(negBooks))
-	  
-posBooks.drop('unique_id',axis=1,inplace=True)
-negBooks.drop('unique_id',axis=1,inplace=True)
+print('\nNumber of Positive Reviews (Dataframe):', len(pos_books),
+      '\nNumber of Negative Reviews (Dataframe):', len(neg_books))
 
-posBooks['Class'] = "pos" # positive reviews
-negBooks['Class'] = "neg" # negative reviews
+pos_books.drop('unique_id', axis=1, inplace=True)
+neg_books.drop('unique_id', axis=1, inplace=True)
 
-reviews  = pd.concat([posBooks, negBooks])
+pos_books['Class'] = "pos"  # positive reviews
+neg_books['Class'] = "neg"  # negative reviews
+
+reviews = pd.concat([pos_books, neg_books])
+
+print('\n===========REVIEW TEXT EXAMPLE===========\n' +
+      reviews.iloc[1, 8] +
+      '\n=========================================\n')
+
+
+def word_sent_tokenize(sent):
+    return word_tokenize(sent), sent_tokenize(sent)
+
+
+def regex_tokenizer(sent):
+    return RegexpTokenizer(r'\w+').tokenize(sent)
+
+
+words, sents = word_sent_tokenize(reviews.iloc[1, 8])
+print("\tReview ID1 - Words:\n", words, "\n\n\tReview ID1 - Sentences:\n", sents)
+
+
+STOP_WORDS = set(line.strip() for line in open('data/stopwords_ua.txt', mode="r", encoding="utf-8"))
+
+
+def stopwords_elimination(stop_words, sent):
+    filtered_words = []
+    for w in sent:
+        if w not in stop_words:
+            filtered_words.append(w)
+    print(filtered_words == [w for w in sent if w not in stop_words])
+    return [w for w in sent if w not in stop_words]
+
+
+filtered_words = stopwords_elimination(STOP_WORDS, words)
+print("\n====================WORDS FROM REVIEW1====================\n", words,
+      "\n\n==================FILTERED WORDS REVIEW1==================\n", filtered_words,
+      "\n\n========================STOP WORDS========================\n", STOP_WORDS)
