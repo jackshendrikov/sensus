@@ -4,8 +4,7 @@ import re
 class UAStemmer:
 
     def __init__(self, word):
-        self.word = word
-
+        self.word = word  # word for processing
         self.RVRE = r'[аеиіоуяюєї]'  # vowels
         self.REFLEXIVE = r'(с[иья])$'  # reflexive verb
         self.ADJECTIVE = r'(ими|ій|ий|а|е|ова|ове|ів|є|їй|єє|еє|я|ім|ем|им|ім|их|іх|ою|йми|іми|' \
@@ -21,8 +20,8 @@ class UAStemmer:
 
     def s(self, s, reg, to):
         orig = s
-        RV = re.sub(reg, to, s)
-        return orig != RV
+        self.RV = re.sub(reg, to, s)
+        return orig != self.RV
 
     def stem_word(self):
         word = self.word.lower().replace("'", "")
