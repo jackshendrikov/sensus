@@ -1,7 +1,17 @@
-import os
+import pickle
+import pymorphy2
 import numpy as np
 import pandas as pd
+import nltk.classify.util
 import xml.etree.ElementTree as ET
+
+
+from re import match
+from nltk import FreqDist
+from random import shuffle
+from stemmer_ua import UAStemmer
+from nltk.classify import NaiveBayesClassifier
+from sklearn.model_selection import train_test_split
 from nltk.tokenize import word_tokenize, sent_tokenize, RegexpTokenizer
 
 testRead = open('data/positive.review', 'r', encoding='utf8', errors='ignore').readlines()
@@ -113,3 +123,153 @@ filtered_words = stopwords_elimination(STOP_WORDS, words)
 print("\n==================== WORDS FROM REVIEW 1 ====================\n", words,
       "\n\n================== FILTERED WORDS REVIEW 1==================\n", filtered_words,
       "\n\n======================== STOP WORDS ========================\n", STOP_WORDS)
+
+
+def stem_words(words):
+    return [UAStemmer(word).stem_word() for word in words]
+
+
+stemmed_words = stem_words(filtered_words)
+print(stemmed_words)
+
+morph = pymorphy2.MorphAnalyzer(lang='uk')
+print(morph.parse('відчувається'))
+
+
+def lemmatize_words(morph, words):
+    return [morph.parse(word)[0].normal_form for word in words]
+
+
+lemmatized_words = lemmatize_words(morph, filtered_words)
+print(lemmatized_words)
+
+# Use regex_tokenizer to get rid of punctuation
+words_list = [regex_tokenizer(item) for item in list(reviews['review_text'])]
+print("Review without punctuation: ", words_list[1])
+
+# Eliminate stopwords
+words_list = [stopwords_elimination(STOP_WORDS, word) for word in words_list]
+print("\n\nReview after stopwords elimination: ", words_list[1])
+
+# Lemmatizing
+words_list = [lemmatize_words(morph, word) for word in words_list]
+print("\n\nReview after lemmatizing: ", words_list[1])
+
+all_words = np.concatenate(words_list)
+all_words_freq = FreqDist(all_words)  # count the number of times that each outcome of an experiment occurs
+
+print("Most popular words: ", all_words_freq.most_common(100))
+print("\nTotal number of words: ", len(all_words_freq.keys()))
+
+
+def irr_words_elim(words):
+    for word in words:
+        if bool(match(r"[a-zA-Z0-9]", word)):
+            words.remove(word)
+        elif len(word) <= 3:
+            words.remove(word)
+
+    return words
+
+
+for review in words_list:
+    irr_words_elim(review)
+
+all_words = np.concatenate(words_list)
+all_words_freq = FreqDist(all_words)
+
+print("\nTotal number of words: ", len(all_words_freq))
+
+
+def create_doc(reviews, words_list):
+    category = list(reviews['Class'])
+    docs = [(words_list[word], category[word]) for word in range(len(words_list))]
+    shuffle(docs)
+    return docs
+
+
+docs = create_doc(reviews, words_list)
+print(docs[1], "\n\nNumber of documents:", len(docs))
+
+
+def find_matches(doc, all_words, num_freq=50):
+    word_matches = [word[0] for word in all_words.most_common(num_freq)]
+    words = regex_tokenizer(doc)
+
+    matches = {}
+    for word in word_matches:
+        matches[word] = (word in words)
+
+    return matches
+
+
+print(find_matches("У мене є книга, яку я полюбляю читати коли вечоріє...", all_words_freq))
+
+
+def create_matches_set(docs, all_words, num_freq=100):
+    matches = []
+    for doc, state in docs:
+        match = find_matches(' '.join(doc), all_words, num_freq)
+        matches.append((match, state))
+    return matches
+
+
+matches_set = create_matches_set(docs[:10], all_words_freq)
+print(matches_set[1])
+
+train_set, test_set = train_test_split(matches_set, random_state=42)
+print(train_set[5])
+
+with open("output/matches_set.pql", "wb") as ms:   # Pickling
+    pickle.dump(matches_set, ms)
+
+reviews.to_csv("output/reviews.csv", sep='\t', encoding='utf-8')
+
+with open("output/matches_set.pql", "rb") as ms:   # Unpickling
+    r = pickle.load(ms)
+print(r[2])
+
+matches_set = create_matches_set(docs, all_words_freq, 2500)
+
+train_set, test_set = train_test_split(matches_set, test_size=0.33, random_state=42)
+print("Length of Matches Set:", len(matches_set), "\nLength of Train Set:", len(train_set))
+
+
+def naive_bayes_model(train_set, test_set):
+    classifier = NaiveBayesClassifier.train(train_set)
+    informative = classifier.show_most_informative_features(10)
+    accuracy = nltk.classify.accuracy(classifier, test_set) * 100
+    return classifier, informative, accuracy
+
+
+classifier, informative, accuracy = naive_bayes_model(train_set, test_set)
+print(informative)
+print("\nClassifier Accuracy:", str(round(accuracy, 2)) + "%")  # predict
+
+
+def words_preparation(sent):
+    words = regex_tokenizer(sent)                     # remove punctuation
+    words = stopwords_elimination(STOP_WORDS, words)  # eliminate stopwords
+    words = lemmatize_words(morph, words)             # lemmatizing
+    words = irr_words_elim(words)                     # irrelevent words elimination
+    print("Sentence after processing:", words)
+    return " ".join(words)
+
+
+test_sent = "Це найкращий фільм, який я бачив!"
+print("Test sentence:", test_sent)
+
+test_sent = find_matches(words_preparation(test_sent), all_words_freq, 2500)
+print(classifier.classify(test_sent))
+
+test_sent = "Ця книга є достатньо читабельною.."
+print("Test sentence:", test_sent)
+
+test_sent = find_matches(words_preparation(test_sent), all_words_freq, 2500)
+print(classifier.classify(test_sent))
+
+test_sent = "Мене дратує, що знову ввели локдаун, це неправильний підхід."
+print("Test sentence:", test_sent)
+
+test_sent = find_matches(words_preparation(test_sent), all_words_freq, 2500)
+print(classifier.classify(test_sent))
