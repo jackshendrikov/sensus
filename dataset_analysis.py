@@ -192,6 +192,10 @@ docs = create_doc(reviews, words_list)
 print(docs[1], "\n\nNumber of documents:", len(docs))
 
 
+with open("output/documents.pql", "wb") as pqld:   # Pickling
+    pickle.dump(docs, pqld)
+
+
 def find_matches(doc, all_words, num_freq=50):
     word_matches = [word[0] for word in all_words.most_common(num_freq)]
     words = regex_tokenizer(doc)
