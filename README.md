@@ -79,12 +79,19 @@ The easiest way to install `Keras`, `Gensim`, `NumPy`, `Jupyter`, `matplotlib` a
     >> pip install -U pymorphy2-dicts-uk # dictionary for the Ukrainian language
     ```
    
-6. Launch Jupyter by entering:
+7. Launch Jupyter by entering:
 	
     ```shell
 	>> jupyter notebook
 	```
-    
+Once you have everything installed, the next time to activate everything, do the following:
+
+1. Open Anaconda Prompt and enter the project folder with the `cd` command. Now enter the following commands:
+   
+    ```shell
+    	>> conda activate tensorflow
+	>> jupyter notebook
+	```
 
 ## 📋 &nbsp;Overview
 
