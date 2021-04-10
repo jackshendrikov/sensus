@@ -89,9 +89,9 @@ Once you have everything installed, the next time to activate everything, do the
 1. Open Anaconda Prompt and enter the project folder with the `cd` command. Now enter the following commands:
    
     ```shell
-    	>> conda activate tensorflow
-	>> jupyter notebook
-	```
+    >> conda activate sentimento
+    >> jupyter notebook
+    ```
 
 ## 📋 &nbsp;Overview
 
