@@ -1,4 +1,4 @@
-<h1 align="center">Sentimento</h1>
+<h1 align="center">Sensus</h1>
 
 <div align="center"> 
 This repository contains 3 parts of iPython notebooks, which reveal the whole process of model development for the sentiment analysis from data processing to comparative analysis of different LSTM models. Visualization is accompanied throughout the journey. The model was created for the analysis of the Ukrainian text.
@@ -11,7 +11,7 @@ Before running notebooks, we first need to download all the data we will be usin
 As always, the first step is to clone the repository:
 
 ```shell
->> git clone https://github.com/JackShen1/sentimento.git
+>> git clone https://github.com/JackShen1/sensus.git
 ```
 
 Learning datasets now include 1,000 positive and 1,000 negative book reviews. Originally, this data was taken from a large dataset with a review from Amazon, you can download it [here](http://www.cs.jhu.edu/~mdredze/datasets/sentiment/unprocessed.tar.gz). And then reviews of books were translated with the help of Google Translator into Ukrainian and slightly edited by me. Raw reviews can be found in the `data/` folder.
@@ -56,7 +56,7 @@ The easiest way to install `Keras`, `Gensim`, `NumPy`, `Jupyter`, `matplotlib` a
 3. If you haven't done so already, download and unzip this entire repository from GitHub:
 	
     ```shell
-    >> git clone https://github.com/JackShen1/sentimento.git
+    >> git clone https://github.com/JackShen1/sensus.git
     ```
 
 4. Use `cd` to navigate into the top directory of the repo on your machine.
@@ -65,8 +65,8 @@ The easiest way to install `Keras`, `Gensim`, `NumPy`, `Jupyter`, `matplotlib` a
 
 	```shell
     >> conda install -c conda-forge jupyterlab    # install JupyterLab
-    >> conda create -n sentimento pip python=3.7  # choose the Python version
-    >> source activate sentimento                 # activate the virtual environment
+    >> conda create -n sensus pip python=3.7  # choose the Python version
+    >> source activate sensus                 # activate the virtual environment
     ```
 	
     Alternatively, you can install Jupyter with pip: `pip install jupyterlab`
@@ -89,7 +89,7 @@ Once you have everything installed, the next time to activate everything, do the
 1. Open Anaconda Prompt and enter the project folder with the `cd` command. Now enter the following commands:
    
     ```shell
-    >> conda activate sentimento
+    >> conda activate sensus
     >> jupyter notebook
     ```
 
